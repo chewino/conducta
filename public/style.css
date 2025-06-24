@@ -1,0 +1,47 @@
+/* Estilos generales */
+.hidden {
+    display: none !important;
+}
+
+/* Estilos para las pestañas principales */
+.tab-button.active {
+    border-color: #3B82F6; /* blue-500 */
+    color: #2563EB; /* blue-600 */
+    font-weight: 600;
+}
+
+.tab-button {
+    border-bottom-width: 2px;
+    border-color: transparent;
+    color: #6B7280; /* gray-500 */
+    transition: color, border-color 0.2s;
+}
+
+.tab-button:hover {
+    color: #4B5563; /* gray-700 */
+    border-color: #D1D5DB; /* gray-300 */
+}
+
+/* Estilos para las sub-pestañas (Admin, Teacher y Auth) */
+.admin-tab-button.active, .teacher-sub-tab-button.active, .auth-sub-tab-button.active {
+    border-color: #3B82F6; /* blue-500 */
+    color: #2563EB; /* blue-600 */
+    font-weight: 600;
+}
+
+.admin-tab-button, .teacher-sub-tab-button, .auth-sub-tab-button {
+    border-bottom-width: 2px;
+    border-color: transparent;
+    color: #6B7280; /* gray-500 */
+    transition: color, border-color 0.2s;
+}
+
+.admin-tab-button:hover, .teacher-sub-tab-button:hover, .auth-sub-tab-button:hover {
+    color: #4B5563; /* gray-700 */
+    border-color: #D1D5DB; /* gray-300 */
+}
+
+/* Clases de mensajes para JavaScript */
+.error-message { color: #EF4444; }
+.success-message { color: #22C55E; }
+.info-message { color: #3B82F6; }

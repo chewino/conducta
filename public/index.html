@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reportes de Conducta</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal min-h-screen flex flex-col">
+
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Sistema de Reportes de Conducta</h1>
+        <nav class="flex items-center space-x-4">
+            <span id="user-info" class="text-sm text-blue-200"></span>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2 px-4 rounded-md transition duration-300 hidden">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div id="main-tabs" class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex" aria-label="Tabs">
+                    <button id="tab-auth" class="tab-button w-full md:w-1/4 py-4 px-1 text-center font-medium">Autenticación</button>
+                    <button id="tab-teacher" class="tab-button w-full md:w-1/4 py-4 px-1 text-center font-medium hidden">Profesor</button>
+                    <button id="tab-orientador" class="tab-button w-full md:w-1/4 py-4 px-1 text-center font-medium hidden">Orientador</button>
+                    <button id="tab-admin" class="tab-button w-full md:w-1/4 py-4 px-1 text-center font-medium hidden">Administrador</button>
+                </nav>
+            </div>
+            <div id="tab-content" class="p-6">
+                
+               <section id="auth-section" class="tab-pane active">
+                    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+                        <div class="border-b border-gray-200 mb-6">
+                            <nav class="-mb-px flex space-x-4" aria-label="Auth Tabs">
+                                <button id="auth-tab-login" class="auth-sub-tab-button w-1/2 py-3 text-center font-medium text-sm border-b-2">Iniciar Sesión</button>
+                                <button id="auth-tab-register" class="auth-sub-tab-button w-1/2 py-3 text-center font-medium text-sm border-b-2">Registrarse</button>
+                            </nav>
+                        </div>
+
+                        <form id="login-form" class="space-y-4">
+                            <h2 class="text-xl font-semibold text-gray-800 text-center">Bienvenido de Nuevo</h2>
+                            <div>
+                                <label for="login-email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                                <input type="email" id="login-email" autocomplete="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            </div>
+                            <div>
+                                <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                                <input type="password" id="login-password" autocomplete="current-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Iniciar Sesión</button>
+                        </form>
+
+                        <form id="register-form" class="space-y-4 hidden">
+                            <h2 class="text-xl font-semibold text-gray-800 text-center">Crea tu Cuenta</h2>
+                            <div>
+                                <label for="register-email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                                <input type="email" id="register-email" autocomplete="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            </div>
+                            <div>
+                                <label for="register-password" class="block text-sm font-medium text-gray-700">Contraseña (mín. 6 caracteres)</label>
+                                <input type="password" id="register-password" autocomplete="new-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            </div>
+                            <div>
+                                <label for="register-role" class="block text-sm font-medium text-gray-700">¿Cómo te registrarás?</label>
+                                <select id="register-role" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                    <option value="">-- Selecciona un rol --</option>
+                                    <option value="Profesor">Profesor</option>
+                                    <option value="Orientador">Orientador</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md">Crear Cuenta</button>
+                        </form>
+
+                        <p id="auth-error" class="text-red-500 text-sm mt-4 text-center"></p>
+                    </div>
+                </section>
+
+                <section id="teacher-section" class="tab-pane hidden">
+                    <div class="border-b border-gray-200 mb-4">
+                        <nav class="-mb-px flex space-x-4" aria-label="Teacher Tabs">
+                            <button id="teacher-tab-create-report" class="teacher-sub-tab-button py-3 px-1 text-center font-medium">Registrar Reporte</button>
+                            <button id="teacher-tab-view-reports" class="teacher-sub-tab-button py-3 px-1 text-center font-medium">Mis Reportes</button>
+                        </nav>
+                    </div>
+                    <div id="teacher-pane-create-report" class="teacher-sub-pane">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Registrar Nuevo Reporte de Conducta</h2>
+                        <form id="report-form" class="space-y-4 max-w-lg mx-auto">
+                           <p class="text-center">Formulario para crear reportes de conducta.</p>
+                        </form>
+                    </div>
+                    <div id="teacher-pane-view-reports" class="teacher-sub-pane hidden">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Mis Reportes Generados</h2>
+                        <div id="teacher-reports-list"></div>
+                    </div>
+                </section>
+
+                <section id="orientador-section" class="tab-pane hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Reportes de Conducta</h2>
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <div>
+                            <label for="filter-status" class="block text-sm font-medium text-gray-700">Estado:</label>
+                            <select id="filter-status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                <option value="all">Todos</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En Proceso">En Proceso</option>
+                                <option value="Revisado">Revisado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-student" class="block text-sm font-medium text-gray-700">Filtrar por Alumno:</label>
+                            <input type="text" id="filter-student" placeholder="Nombre del alumno..." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                    </div>
+                    <div id="reports-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <p class="text-gray-500">Cargando reportes...</p>
+                    </div>
+                </section>
+
+                <section id="admin-section" class="tab-pane hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Panel de Administración</h2>
+                    <div class="bg-gray-50 rounded-lg shadow-sm mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex" aria-label="Admin Tabs">
+                                <button id="admin-tab-users" class="admin-tab-button w-1/4 py-3 px-1 text-center font-medium">Usuarios</button>
+                                <button id="admin-tab-groups" class="admin-tab-button w-1/4 py-3 px-1 text-center font-medium">Grupos</button>
+                                <button id="admin-tab-students" class="admin-tab-button w-1/4 py-3 px-1 text-center font-medium">Alumnos</button>
+                                <button id="admin-tab-validate" class="admin-tab-button w-1/4 py-3 px-1 text-center font-medium">Validar Usuarios</button>
+                            </nav>
+                        </div>
+                        <div id="admin-tab-content" class="p-4">
+                            <div id="admin-pane-users" class="admin-tab-pane">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Crear Nuevo Usuario</h3>
+                                <form id="create-user-form" class="space-y-4 max-w-md">
+                                    <div><label for="new-user-name" class="block text-sm font-medium">Nombre:</label><input type="text" id="new-user-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                                    <div><label for="new-user-email" class="block text-sm font-medium">Correo:</label><input type="email" id="new-user-email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                                    <div><label for="new-user-password" class="block text-sm font-medium">Contraseña:</label><input type="password" id="new-user-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                                    <div><label for="new-user-role" class="block text-sm font-medium">Rol:</label><select id="new-user-role" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"><option value="Profesor">Profesor</option><option value="Orientador">Orientador</option><option value="Administrador">Administrador</option></select></div>
+                                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md">Crear Usuario</button>
+                                </form>
+                                <p id="create-user-message" class="text-sm mt-4"></p>
+                            </div>
+                            <div id="admin-pane-groups" class="admin-tab-pane hidden">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Gestión de Grupos</h3>
+                            
+                                <div class="bg-gray-100 p-4 rounded-lg mb-6 shadow-inner">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-3">Añadir Nuevo Grupo</h4>
+                                    <form id="create-group-form" class="flex flex-col md:flex-row gap-4 items-end">
+                                        <div class="flex-grow w-full">
+                                            <label for="new-group-name" class="block text-sm font-medium text-gray-700">Nombre del Grupo</label>
+                                            <input type="text" id="new-group-name" placeholder="Ej: 402 Contepec" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                        </div>
+                                        <div class="flex-grow w-full">
+                                            <label for="new-group-description" class="block text-sm font-medium text-gray-700">Descripción (Opcional)</label>
+                                            <input type="text" id="new-group-description" placeholder="Ej: Tutoría a cargo de..." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                        </div>
+                                        <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Crear Grupo</button>
+                                    </form>
+                                    <p id="create-group-message" class="text-sm mt-3"></p>
+                                </div>
+                            
+                                <div id="groups-list"></div>
+                            </div>
+                            <div id="admin-pane-students" class="admin-tab-pane hidden">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Gestión de Alumnos</h3>
+                                <div id="students-list"></div>
+                            </div>
+                            <div id="admin-pane-validate" class="admin-tab-pane hidden">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Usuarios Pendientes de Aprobación</h3>
+                                <div id="pending-users-list"></div>
+                                <p id="validate-user-message" class="text-sm mt-4"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-8">
+        <p>&copy; <span id="current-year"></span> Sistema de Reportes</p>
+    </footer>
+
+    <div id="edit-group-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Editar Grupo</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="edit-group-form" class="space-y-4">
+                        <input type="hidden" id="edit-group-id">
+                        <div>
+                            <label for="edit-group-name" class="text-left block text-sm font-medium text-gray-700">Nombre del Grupo</label>
+                            <input type="text" id="edit-group-name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                        <div>
+                            <label for="edit-group-description" class="text-left block text-sm font-medium text-gray-700">Descripción</label>
+                            <input type="text" id="edit-group-description" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                    </form>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="save-edit-group-btn" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-green-600">
+                        Guardar Cambios
+                    </button>
+                    <button id="cancel-edit-group-btn" class="ml-4 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-400">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Script para el año actual en el footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+    <script src="script.js"></script>
+
+</body>
+</html>
